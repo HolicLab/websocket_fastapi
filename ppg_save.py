@@ -19,6 +19,10 @@ async def save_to_csv(buffer, filename):
                 writer.writerow(row)
     except Exception as e:
         logger.error(f"Error saving to CSV: {e}")
+    
+    # 파일이 새로 생성된 경우 권한 변경
+    if not file_exists:
+        os.chmod(file_path, 0o777)
             
 async def process_buffer(session_id):
     while True:
