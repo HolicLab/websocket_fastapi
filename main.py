@@ -7,16 +7,12 @@ import asyncio
 import logging
 import os
 from ppg_save import save_to_csv, process_buffer, buffers
-import getpass
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
-
-# 실행 사용자 이름 가져오기
-current_user = getpass.getuser()
 
 # 저장 디렉토리 생성
 if not os.path.exists("ppg_datas"):
