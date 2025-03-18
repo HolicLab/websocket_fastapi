@@ -6,6 +6,6 @@ services:
       dockerfile: Dockerfile
     restart: always
     ports:
-      - "8001:8001"
+      - "18001:18001"
     volumes:
       - .:/app
