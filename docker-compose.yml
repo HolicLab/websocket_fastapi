@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   fastapi-app:
     build:
@@ -9,3 +8,18 @@ services:
       - "18001:18001"
     volumes:
       - .:/app
+    networks:
+      - mynetwork
+
+  pytorch:
+    build:
+      context: .
+      dockerfile: Dockerfile.pytorch
+    ports:
+      - "18002:18002"
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    

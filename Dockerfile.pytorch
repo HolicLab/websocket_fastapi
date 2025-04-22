@@ -1,0 +1,15 @@
+From python:3.12
+
+# Install Basic PKG
+RUN apt-get update && apt-get install -y \
+        python3 \
+        python3-pip 
+        
+# Install Python packages (offline where possible)
+RUN pip3 install websockets asyncio
+
+# Set WORKDIR
+WORKDIR /test
+
+CMD ["tail", "-f", "/dev/null"]
+
