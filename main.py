@@ -27,37 +27,40 @@ mapper = UlidMapper(start_id=2000)
 # 웹소켓 설정
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    # 웹소켓 연결 
+    #### 3. 웹소켓 연결 
     logger.info(f"client connected : {websocket.client}")
     await websocket.accept() # client의 websocket접속 허용
     task = Task(websocket)
     
     try:
         while True:
-            data = await websocket.receive_text()       # client 메시지 수신대기
-            await task.receive_ppg_data(data)               # 메시지 수신
+            ##### 1. client 메시지 수신대기
+            data = await websocket.receive_text()
             
-            # user_id(ulid)를 숫자로 매핑(테스트)
-            task.ppg_data.user_id = mapper.get_numeric_id(task.ppg_data.user_id)
+            ##### 2. task.ppg_data에 수신한 ppg, session_id 등을 저장
+            await task.receive_ppg_data(data)              
+            
+            ##### 3. task.ppg_data.user_id를 숫자로 매핑
+            task.ppg_data.user_id = await mapper.get_numeric_id(task.ppg_data.user_id)
             if task.count == 1:
-                logger.info(f"변환된 user_id : {task.ppg_data.user_id}")
+                logger.info(f"변환된 user_id(int) : {task.ppg_data.user_id}")
             
-            #---- 인공지능 처리 ------#
+            #-------------- 인공지능 처리 -------------------#
             # predictor.on_receive_ppg(task.ppg_data.ppg_value, task.ppg_data.date)
             
-            # 인공지능 결과값(워치로 전송 되는지 테스트용)
-            #-----------------------#
-
-            # 이 부분은 인공지능 결과 데이터를 가정(워치로 보내지는지, cpu 서버로 post 요청을 하는지 테스트트)
+            #------------------------------------------------#
+            
+            ##### 4. task.ppg_data.user_id를 다시 ulid로 매핑
+            task.ppg_data.user_id = await mapper.get_ulid(task.ppg_data.user_id)
+            if task.count == 100:
+                logger.info(f"변환된 user_id(ulid) : {task.ppg_data.user_id}")
+            
+            # 현재 시간
             seoul_timezone = pytz.timezone('Asia/Seoul')
             now = datetime.now(seoul_timezone)
             formatted_date = now.strftime("%Y-%m-%dT%H:%M:%S.%f%z")
             
-            # 숫자를 ULID로 변환(테스트)
-            task.ppg_data.user_id = mapper.get_ulid(task.ppg_data.user_id)
-            if task.count == 100:
-                logger.info(f"변환된 user_id : {task.ppg_data.user_id}")
-            
+            ##### 5. focus_test_data (ai모델 출력값 임의 설정) 생성
             focus_test_data = focus_data(
                 user_id=f"{task.ppg_data.user_id}",
                 session_id=f"{task.ppg_data.session_id}",
@@ -65,14 +68,17 @@ async def websocket_endpoint(websocket: WebSocket):
                 level=0,
                 time=f"{formatted_date}"
             )
+            
+            ##### 6. focus_test_data 스마트 워치에 전송
             await task.send_data_to_watch(focus_test_data)
             #-------------------------#
             
+    ##### 6. 웹소켓 연결 종료
     except WebSocketDisconnect:
         logger.info(f"client disconnected : {websocket.client}")
         logger.info(f"받은 총 데이터 개수 : {task.count}")
     finally:
-        # 연결이 끊기면 반드시 정리 작업 수행
+        ##### 7. 정리 작업
         await task.cleanup()
         
 if __name__ == "__main__":
