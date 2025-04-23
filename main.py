@@ -45,6 +45,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 time="test"
             )
             await task.send_data_to_watch(focus_test_data)
+            #-------------------------#
             
     except WebSocketDisconnect:
         logger.info(f"client disconnected : {websocket.client}")
