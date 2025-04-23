@@ -1,14 +1,11 @@
-from fastapi import FastAPI, WebSocket, Request
+from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.logger import logger
 from starlette.websockets import WebSocketDisconnect
-import json
 import logging
-from ppg_save import save_to_csv, process_buffer, buffers
 from application import Task
-from domain import focus_data, ppg_data
+from domain import focus_data
 import uvicorn
-import asyncio
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)

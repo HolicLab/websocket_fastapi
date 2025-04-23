@@ -1,15 +1,15 @@
-FROM python:3.12
+FROM ubuntu:22.04
 
-WORKDIR /app
+RUN apt-get update && apt-get install -y \
+    git \
+    python3.10 \ 
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
 
-ARG POETRY_VERSION=2.1.1
-RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
-ENV PATH="/app/.venv/bin:$PATH"
+RUN pip install fastapi uvicorn aiohttp
 
-COPY pyproject.toml poetry.lock ./
+WORKDIR /holic
 
-RUN poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi
+CMD ["tail", "-f", "/dev/null"]
 
-COPY . .
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "18001", "--reload"]
+# CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "18001", "--reload"]

@@ -5,7 +5,6 @@ from domain import ppg_data, focus_data
 import asyncio
 import aiohttp
 import logging
-from datetime import datetime, timedelta
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
