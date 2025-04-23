@@ -2,17 +2,17 @@ from dataclasses import dataclass
 from datetime import datetime
 
 @dataclass
-class recieve_data:
-    user_id: str
-    session_id: str
-    ppg_value: float
-    date: datetime
+class ppg_data:
+    user_id: str = None
+    session_id: str = None
+    ppg_value: float = 0.0
+    time: datetime = None
     
 @dataclass
-class send_data:
-    user_id: str
-    session_id: str
-    focus_rate: float
-    level: int
-    date: datetime
+class focus_data:
+    user_id: str = None
+    session_id: str = None
+    focus_rate: float = 0.0
+    level: int = 0
+    time: datetime = None
     
