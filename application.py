@@ -6,11 +6,13 @@ import asyncio
 import aiohttp
 import logging
 
+
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 MAX_BUFF_SIZE = 1000
+
 
 # 로그인 관련 클래스
 class AuthService:
@@ -40,6 +42,7 @@ class Task:
         self.focus_buffers = {}
         self.ppg_data = ppg_data()
         self.background_tasks = set()  # 백그라운드 태스크 추적용 세트
+        self.count = 0
         
     # ppg 데이터 수신
     async def receive_ppg_data(self, json_data: json):
@@ -54,6 +57,7 @@ class Task:
             self.ppg_data.time = json_data.get("time", "No time key found")
             
             logger.info(f"Received message from client: {self.ppg_data}")  # 로그 추가
+            self.count += 1
         except json.JSONDecodeError:
             logger.info("Received data is not JSON")
                     
@@ -125,12 +129,39 @@ class Task:
     # 버퍼 비우기
     async def process_buffer(self, session_id: str):
         self.focus_buffers[session_id].clear()
-        
-    async def close(self):
-        await self.auth_service.close()
-        
+            
     # 태스크 정리 메서드 추가
     async def cleanup(self):
+        
+        # 나머지 버퍼 정리
+        for session_id, buffer in self.focus_buffers.items():
+            if buffer:
+                access_token = await self.auth_service.get_token(buffer[0].user_id, session_id)
+                if access_token:
+                    url = "https://youngwon.site/study/data"
+                    headers = {"Authorization": f"Bearer {access_token}"}
+                    focus_result = [
+                        {
+                            "focus_rate": f.focus_rate,
+                            "level": f.level,
+                            "time": f.time
+                        } for f in buffer
+                    ]
+                    payload = {
+                        "session_id": session_id,
+                        "datas": focus_result
+                    }
+                    async with aiohttp.ClientSession() as session:
+                        try:
+                            async with session.post(url, json=payload, headers=headers) as response:
+                                if response.status in [200, 201]:
+                                    logger.info(f"종료 시 데이터 전송 성공: {session_id}, 데이터 수: {len(focus_result)}")
+                                else:
+                                    error_text = await response.text()
+                                    logger.error(f"종료 시 전송 실패: {response.status}, 오류: {error_text}")
+                        except Exception as e:
+                            logger.error(f"종료 시 전송 중 예외 발생: {str(e)}")
+        
         # 모든 백그라운드 태스크 취소
         for task in self.background_tasks:
             task.cancel()
@@ -141,7 +172,6 @@ class Task:
             
         # 세션 닫기
         await self.auth_service.close()
-        
         logger.info("모든 백그라운드 태스크가 정리되었습니다.")
         
         
