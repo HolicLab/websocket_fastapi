@@ -34,13 +34,21 @@ kill -9 258820
 ```
 ### 파일 구성
 ├── ./Dockerfile
+
 ├── ./README.md
+
 ├── ./application.py                                  # 웹소켓 동작 제어 (Task)
+
 ├── ./docker-compose.yml           
+
 ├── ./domain.py                                       # 기본 자료구조(송, 수신 데이터)
+
 ├── ./main.py                                           # 메인 실행
+
 ├── ./mapping_table.py                           # 매핑 테이블 클래스(ulid -> 숫자, 숫자 -> ulid)
+
 ├── ./test.log                                            # 로그파일
+
 └── ./ulid_mapping.json                           # 매핑 테이블(json)
 - 전부 도커 컨테이너 내부에 있음
 - main.py, application.py domain.py, mapping_table.py만 같은 디렉터리 아래 있으면 된다.
