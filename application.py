@@ -5,6 +5,7 @@ from domain import ppg_data, focus_data
 import asyncio
 import aiohttp
 import logging
+from datetime import datetime
 
 
 # 로깅 설정
@@ -47,20 +48,36 @@ class Task:
     # ppg 데이터 수신
     async def receive_ppg_data(self, json_data: json):
         try:
-            session_id = None
             if isinstance(json_data, str):
                 json_data = json.loads(json_data)
-                
+
             self.ppg_data.user_id = json_data.get("user_id", "No user_id key found")
             self.ppg_data.session_id = json_data.get("session_id", "No session_id key found")
             self.ppg_data.ppg_value = json_data.get("ppg_value", "No ppg_value key found")
-            self.ppg_data.time = json_data.get("time", "No time key found")
             
-            logger.info(f"Received message from client: {self.ppg_data}")  # 로그 추가
+            # 🔥 수정
+            time_str = json_data.get("time", None)
+            if time_str:
+                try:
+                    self.ppg_data.time = datetime.strptime(time_str, "%Y-%m-%dT%H:%M:%S.%f%z")
+                    self.ppg_data.date = self.ppg_data.time
+                except Exception as e:
+                    logger.error(f"타임 포맷 오류 발생: {e}")
+                    self.ppg_data.time = datetime.now()
+                    self.ppg_data.date = self.ppg_data.time
+            else:
+                self.ppg_data.time = datetime.now()
+                self.ppg_data.date = self.ppg_data.time
+
+
+            self.ppg_data.user_id_as_int = None
+
+            logger.info(f"Received message from client: {self.ppg_data}")
             self.count += 1
         except json.JSONDecodeError:
             logger.info("Received data is not JSON")
-                    
+
+
     # 워치에 집중도 데이터 전송
     async def send_data_to_watch(self, focus_data: focus_data):
         text = {
