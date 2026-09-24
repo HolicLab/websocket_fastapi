@@ -1,4 +1,4 @@
-# WebSocket Server by FastAPI
+## WebSocket Server by FastAPI
 
 > 스마트워치 PPG(광혈류) 데이터를 실시간 수신 → AI 모델로 집중도 추론 → 워치·백엔드(CPU 서버)로 결과를 전달하는 **GPU 추론 서버용 WebSocket 게이트웨이**
 
